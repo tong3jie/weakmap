@@ -35,16 +35,16 @@ func BenchmarkItemsInteger(b *testing.B) {
 		m.Items()
 	}
 }
-func directSharding(key uint32) uint32 {
+func directSharding(key uint64) uint64 {
 	return key
 }
 
 func BenchmarkItemsInt(b *testing.B) {
-	m := NewWithCustomShardingFunction[uint32, Animal](directSharding)
+	m := NewWithCustomShardingFunction[uint64, Animal](directSharding)
 
 	// Insert 100 elements.
 	for i := 0; i < 10000; i++ {
-		m.Set((uint32)(i), Animal{strconv.Itoa(i)})
+		m.Set((uint64)(i), Animal{strconv.Itoa(i)})
 	}
 	for i := 0; i < b.N; i++ {
 		m.Items()
@@ -292,8 +292,7 @@ func BenchmarkMultiGetSetBlock_256_Shard(b *testing.B) {
 	runWithShards(benchmarkMultiGetSetBlock, b, 256)
 }
 
-
-func GetSet[K comparable, V any](m ConcurrentMap[K, V], finished chan struct{}) (set func(key K, value V), get func(key K, value V)) {
+func GetSet[K comparable, V any](m WeakMap[K, V], finished chan struct{}) (set func(key K, value V), get func(key K, value V)) {
 	return func(key K, value V) {
 			for i := 0; i < 10; i++ {
 				m.Get(key)

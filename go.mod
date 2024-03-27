@@ -1,3 +1,5 @@
-module github.com/orcaman/concurrent-map/v2
+module github.com/tong3jie/weakmap
 
-go 1.18
+go 1.21
+
+require github.com/cespare/xxhash/v2 v2.2.0

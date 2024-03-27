@@ -2,10 +2,11 @@ package cmap
 
 import (
 	"encoding/json"
-	"hash/fnv"
 	"sort"
 	"strconv"
 	"testing"
+
+	"github.com/cespare/xxhash/v2"
 )
 
 type Animal struct {
@@ -468,13 +469,8 @@ func TestMInsert(t *testing.T) {
 func TestFnv32(t *testing.T) {
 	key := []byte("ABC")
 
-	hasher := fnv.New32()
-	_, err := hasher.Write(key)
-	if err != nil {
-		t.Errorf(err.Error())
-	}
-	if fnv32(string(key)) != hasher.Sum32() {
-		t.Errorf("Bundled fnv32 produced %d, expected result from hash/fnv32 is %d", fnv32(string(key)), hasher.Sum32())
+	if fnv32(string(key)) != xxhash.Sum64(key) {
+		t.Errorf("Bundled fnv32 produced %d, expected result from hash/fnv32 is %d", fnv32(string(key)), xxhash.Sum64(key))
 	}
 
 }
@@ -526,7 +522,7 @@ func TestKeysWhenRemoving(t *testing.T) {
 	// Remove 10 elements concurrently.
 	Num := 10
 	for i := 0; i < Num; i++ {
-		go func(c *ConcurrentMap[string, Animal], n int) {
+		go func(c *WeakMap[string, Animal], n int) {
 			c.Remove(strconv.Itoa(n))
 		}(&m, i)
 	}
