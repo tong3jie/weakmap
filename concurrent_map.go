@@ -37,7 +37,7 @@ func (m *MapShard[K, V]) init() {
 		ticker := time.NewTicker(time.Second * 10)
 		defer ticker.Stop()
 		for range ticker.C {
-			if len(m.items) == 0 || m.count < 10000 {
+			if len(m.items) == 0 || m.count > 10000 {
 				continue
 			}
 			m.Lock()
@@ -98,7 +98,6 @@ func (m WeakMap[K, V]) Set(key K, value V) {
 	// Get map shard.
 	shard := m.GetShard(key)
 	shard.Lock()
-	shard.count++
 	shard.items[key] = value
 	shard.Unlock()
 }
@@ -172,6 +171,7 @@ func (m WeakMap[K, V]) Remove(key K) {
 	// Try to get shard.
 	shard := m.GetShard(key)
 	shard.Lock()
+	shard.count++
 	delete(shard.items, key)
 	shard.Unlock()
 }
@@ -190,6 +190,7 @@ func (m WeakMap[K, V]) RemoveCb(key K, cb RemoveCb[K, V]) bool {
 	v, ok := shard.items[key]
 	remove := cb(key, v, ok)
 	if remove && ok {
+		shard.count++
 		delete(shard.items, key)
 	}
 	shard.Unlock()
@@ -202,6 +203,7 @@ func (m WeakMap[K, V]) Pop(key K) (v V, exists bool) {
 	shard := m.GetShard(key)
 	shard.Lock()
 	v, exists = shard.items[key]
+	shard.count++
 	delete(shard.items, key)
 	shard.Unlock()
 	return v, exists
