@@ -37,7 +37,7 @@ func (m *MapShard[K, V]) init() {
 		ticker := time.NewTicker(time.Second * 10)
 		defer ticker.Stop()
 		for range ticker.C {
-			if len(m.items) == 0 || m.count < 1000 {
+			if len(m.items) == 0 || m.count < 10000 {
 				continue
 			}
 			m.Lock()
@@ -58,7 +58,7 @@ func create[K comparable, V any](sharding func(key K) uint64) WeakMap[K, V] {
 		shards:   make([]*MapShard[K, V], SHARD_COUNT),
 	}
 	for i := 0; i < SHARD_COUNT; i++ {
-		m.shards[i] = &MapShard[K, V]{items: make(map[K]V), Mutex: sync.Mutex{}}
+		m.shards[i] = &MapShard[K, V]{items: make(map[K]V, 10000), Mutex: sync.Mutex{}}
 		m.shards[i].init()
 	}
 	return m
